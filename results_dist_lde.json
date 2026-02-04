@@ -1,0 +1,15 @@
+{
+  "world": "open",
+  "variants": {
+    "1": {
+      "results": {
+        "attr_acc": 0.8362096516458932,
+        "obj_acc": 0.06375838926174497,
+        "seen_acc": 0.06706606756531869,
+        "unseen_acc": 0.05107716412064238
+      }
+    }
+  },
+  "eval_split": "val",
+  "method": "LDE"
+}

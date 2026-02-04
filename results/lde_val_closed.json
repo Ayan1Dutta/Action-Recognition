@@ -1,0 +1,21 @@
+{
+    "config": {
+        "data_dir": "./data",
+        "embeddings_dir": "./embeddings",
+        "experiment_name": "LDE",
+        "open_world": false,
+        "n_exp": 1,
+        "test_phase": "val",
+        "result_path": "./results/lde_val_closed.json",
+        "compute_auc": true
+    },
+    "result": {
+        "unbiased_pair_acc": 0.12219026312986045,
+        "attr_acc": 0.8534142963673165,
+        "obj_acc": 0.13369553638010015,
+        "best_seen_acc": 0.1544350141454485,
+        "best_unseen_acc": 0.4201331766549158,
+        "best_harmonic_mean": 0.1475052991359523,
+        "auc": 0.044477982073762315
+    }
+}
