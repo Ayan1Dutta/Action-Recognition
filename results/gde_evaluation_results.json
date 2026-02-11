@@ -1,0 +1,19 @@
+{
+    "config": {
+        "data_dir": "../data",
+        "embeddings_dir": "../embeddings",
+        "experiment_name": "GDE",
+        "open_world": false,
+        "n_exp": 1,
+        "test_phase": "test",
+        "result_path": "../results/gde_evaluation_results.json",
+        "compute_auc": false
+    },
+    "result": {
+        "unbiased_pair_acc": 0.09970428565123361,
+        "attr_acc": 0.8311780023833694,
+        "obj_acc": 0.11135631372202852,
+        "best_seen_acc": 0.14226152874289325,
+        "best_unseen_acc": 0.28679962013295346
+    }
+}

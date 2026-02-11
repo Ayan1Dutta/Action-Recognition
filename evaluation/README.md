@@ -21,6 +21,18 @@ video_compositionality_project/
 │   ├── dist_train.pt              # DiST embeddings for training (38,034 x 512)
 │   ├── dist_val.pt                # DiST embeddings for validation (18,774 x 512)
 │   └── dist_test.pt               # DiST embeddings for test (22,657 x 512)
+├── models/
+│   ├── DiST_model/
+│   │   ├── checkpoints/
+│   │   │   └── dist_vit-b16_32+64f_ssv2_70.9.pth  # Pre-trained DiST model
+│   │   ├── configs/                # Model configuration files
+│   │   ├── extract_embeddings.py   # Script to extract video embeddings
+│   │   └── README.md               # DiST model documentation
+│   └── InternVideo2-Stage2_6B-224p-f4/
+│       ├── README.md               # InternVideo2 model documentation
+│       ├── configs/                # Model configuration files
+│       ├── data/                   # Dataset configs or metadata
+│       └── checkpoints/            # Pre-trained InternVideo2 checkpoints
 ├── factorizers/
 │   ├── factorizers.py             # GDE and LDE implementations
 │   └── sphere.py                  # Riemannian geometry utilities for GDE
