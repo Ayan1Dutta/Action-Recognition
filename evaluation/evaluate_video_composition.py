@@ -193,6 +193,38 @@ class Evaluator:
         objs = self.pair_idx2ao_idx[pairs, 1]
         return attrs, objs
 
+    def track_wrong_predictions(self, y_pred_topk, y_true, all_pairs_true):
+        """
+        Track incorrectly predicted pairs.
+        
+        Args:
+            y_pred_topk: Predicted pair indices [N, topk]
+            y_true: Ground truth pair indices [N]
+            all_pairs_true: List of ground truth (verb, object) tuples
+            
+        Returns:
+            List of dicts with ground_truth and predicted pairs for wrong predictions
+        """
+        wrong_predictions = []
+        correct = torch.eq(y_pred_topk, y_true.unsqueeze(1)).any(1).numpy()
+        
+        for i, is_correct in enumerate(correct):
+            if not is_correct:
+                # Get ground truth pair
+                gt_pair = all_pairs_true[i]
+                
+                # Get predicted pair (top-1 prediction)
+                pred_idx = y_pred_topk[i, 0].item()
+                pred_pair = self.dset.pairs[pred_idx]
+                
+                wrong_predictions.append({
+                    'video_idx': i,
+                    'ground_truth': gt_pair,
+                    'predicted': pred_pair
+                })
+        
+        return wrong_predictions
+
     def evaluate(self, y_pred_topk, y_true, seen_ids, unseen_ids):
         """Evaluate predictions."""
         correct = torch.eq(y_pred_topk, y_true.unsqueeze(1)).any(1).numpy()
@@ -243,10 +275,16 @@ class Evaluator:
         ]
 
         overall_metrics = {}
+        wrong_predictions_all = {}
+        
         for topk in topk_list:
             # Get model's performance from unbiased features
             pair_preds, attr_preds, obj_preds = self.predict(features, topk=topk, bias=0.)
             attr_true, obj_true = self.get_attr_obj_from_pairs(labels)
+            
+            # Track wrong predictions
+            wrong_preds = self.track_wrong_predictions(pair_preds, labels, all_pairs_true)
+            wrong_predictions_all[topk] = wrong_preds
             
             unbiased_pair_acc = self.evaluate(
                 pair_preds, labels, seen_ids, unseen_ids)['all_acc']
@@ -300,7 +338,7 @@ class Evaluator:
                 "best_harmonic_mean": best_harmonic_mean,
                 "auc": auc,
             }
-        return overall_metrics
+        return overall_metrics, wrong_predictions_all
     
     def get_fast_metrics(self, features, all_pairs_true, topk_list=[1]):
         """Compute metrics without AUC (faster)."""
@@ -318,8 +356,14 @@ class Evaluator:
         ]
 
         fast_metrics = {}
+        wrong_predictions_all = {}
+        
         for topk in topk_list:
             pair_preds, attr_preds, obj_preds = self.predict(features, topk=topk, bias=0.)
+            
+            # Track wrong predictions
+            wrong_preds = self.track_wrong_predictions(pair_preds, labels, all_pairs_true)
+            wrong_predictions_all[topk] = wrong_preds
             
             unbiased_pair_acc = self.evaluate(
                 pair_preds, labels, seen_ids, unseen_ids)['all_acc']
@@ -347,7 +391,7 @@ class Evaluator:
                 "best_seen_acc": best_seen_acc,
                 "best_unseen_acc": best_unseen_acc,
             }
-        return fast_metrics
+        return fast_metrics, wrong_predictions_all
 
 
 def compute_logits(video_embs, label_embs):
@@ -394,6 +438,7 @@ def main(config: argparse.Namespace, verbose=False):
         print(f"="*60)
 
     all_results = []
+    all_wrong_predictions = []
     for e in range(config.n_exp):
         if verbose: 
             print(f'\nExperiment {e+1}/{config.n_exp}')
@@ -439,13 +484,18 @@ def main(config: argparse.Namespace, verbose=False):
         evaluator = Evaluator(test_dataset)
         
         if config.compute_auc:
-            result = evaluator.get_overall_metrics(
-                logits, all_pairs_true, progress_bar=verbose)[1]  # topk=1
+            metrics, wrong_preds = evaluator.get_overall_metrics(
+                logits, all_pairs_true, progress_bar=verbose)
+            result = metrics[1]  # topk=1
+            wrong_predictions = wrong_preds[1]
         else:
-            result = evaluator.get_fast_metrics(
-                logits, all_pairs_true)[1]  # topk=1
+            metrics, wrong_preds = evaluator.get_fast_metrics(
+                logits, all_pairs_true)
+            result = metrics[1]  # topk=1
+            wrong_predictions = wrong_preds[1]
         
         all_results.append(result)
+        all_wrong_predictions.append(wrong_predictions)
 
     # Combine results from multiple experiments
     if config.n_exp > 1:
@@ -469,6 +519,19 @@ def main(config: argparse.Namespace, verbose=False):
             json.dump(experiment_details, fp, indent=4)
         if verbose:
             print(f"\nResults saved to: {config.result_path}")
+        
+        # Save wrong predictions to a separate file
+        wrong_preds_path = config.result_path.replace('.json', '_wrong_predictions.json')
+        with open(wrong_preds_path, 'w') as fp:
+            wrong_preds_data = {
+                'config': vars(config),
+                'num_wrong_predictions': len(all_wrong_predictions[0]),
+                'wrong_predictions': all_wrong_predictions[0]  # Use first experiment
+            }
+            json.dump(wrong_preds_data, fp, indent=4)
+        if verbose:
+            print(f"Wrong predictions saved to: {wrong_preds_path}")
+            print(f"Total wrong predictions: {len(all_wrong_predictions[0])}")
 
     # Print results
     if verbose:

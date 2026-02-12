@@ -1,0 +1,23 @@
+{
+    "config": {
+        "data_dir": "./data",
+        "embeddings_dir": "./embeddings",
+        "open_world": false,
+        "n_exp": 1,
+        "test_phase": "test",
+        "result_path": "./results/twostage_gde_test_closed.json",
+        "compute_auc": true,
+        "obj_weight": 1.0,
+        "refine_iters": 3
+    },
+    "method": "TwoStageGDE",
+    "result": {
+        "unbiased_pair_acc": 0.1469744449838902,
+        "attr_acc": 0.8340027364611379,
+        "obj_acc": 0.16259875535154697,
+        "best_seen_acc": 0.22804801010739104,
+        "best_unseen_acc": 0.34968118301451634,
+        "best_harmonic_mean": 0.19039609336547578,
+        "auc": 0.058326744966037444
+    }
+}

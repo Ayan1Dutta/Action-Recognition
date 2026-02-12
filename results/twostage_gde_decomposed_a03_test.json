@@ -1,0 +1,25 @@
+{
+    "config": {
+        "data_dir": "./data",
+        "embeddings_dir": "./embeddings",
+        "open_world": false,
+        "n_exp": 1,
+        "test_phase": "test",
+        "result_path": "./results/twostage_gde_decomposed_a03_test.json",
+        "compute_auc": true,
+        "obj_weight": 1.0,
+        "refine_iters": 3,
+        "scoring_mode": "decomposed",
+        "alpha": 0.3
+    },
+    "method": "TwoStageGDE",
+    "result": {
+        "unbiased_pair_acc": 0.15566932956702123,
+        "attr_acc": 0.8091980403407335,
+        "obj_acc": 0.17160259522443394,
+        "best_seen_acc": 0.23019583070120025,
+        "best_unseen_acc": 0.34649301315967984,
+        "best_harmonic_mean": 0.19494175701547248,
+        "auc": 0.06119040720009345
+    }
+}
